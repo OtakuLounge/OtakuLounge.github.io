@@ -1,0 +1,430 @@
+:root {
+    --primary-color: #6a5acd;
+    --background-color: #f5f5f5;
+    --card-background: #ffffff;
+    --text-color: #333333;
+    --border-color: rgba(0, 0, 0, 0.1);
+    --sidebar-width: 250px;
+}
+
+/* Layout */
+body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+}
+
+/* Welcome Message */
+.welcome-message {
+    text-align: center;
+    padding: 3rem 1rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.welcome-message h2 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.welcome-message p {
+    margin-bottom: 1.5rem;
+    color: #666;
+}
+
+.welcome-list {
+    text-align: left;
+    max-width: 400px;
+    margin: 0 auto 2rem;
+    color: #666;
+    list-style-type: none;
+    padding: 0;
+}
+
+.welcome-list li {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.welcome-list li:before {
+    content: "•";
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    position: absolute;
+    left: 0;
+    top: -0.25rem;
+}
+
+.welcome-note {
+    font-style: italic;
+    opacity: 0.8;
+}
+
+/* Sidebar */
+.sidebar {
+    width: var(--sidebar-width);
+    height: 100vh;
+    background-color: var(--card-background);
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
+.sidebar-header {
+    padding: 1.5rem;
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.genre-list {
+    padding: 1rem;
+}
+
+.genre-group {
+    margin-bottom: 2rem;
+}
+
+.genre-group h3 {
+    color: var(--text-color);
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.8;
+}
+
+.genre-btn {
+    display: block;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-color);
+    font-size: 0.95rem;
+}
+
+.genre-btn:hover {
+    background-color: var(--background-color);
+    border-color: var(--primary-color);
+}
+
+.genre-btn.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    padding: 2rem;
+    max-width: calc(1200px + var(--sidebar-width));
+    width: 100%;
+}
+
+/* Search Section */
+.search-section {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+#searchInput {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+#searchInput:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.search-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.search-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+/* Home Button */
+.home-btn {
+    display: block;
+    width: 100%;
+    padding: 0.75rem;
+    margin-top: 1rem;
+    background: none;
+    border: 1px solid white;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.home-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Header */
+header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-top: 1rem;
+}
+
+h1 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    margin-left: 3rem;
+}
+
+.filters {
+    margin: 1rem 0;
+}
+
+select {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--primary-color);
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+}
+
+select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Anime Grid */
+.anime-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 1rem 0;
+}
+
+.anime-card {
+    background-color: var(--card-background);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+    display: flex;
+    flex-direction: column;
+}
+
+.anime-card:hover {
+    transform: translateY(-5px);
+}
+
+.anime-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.anime-info {
+    padding: 1rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.anime-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.english-title {
+    font-size: 1rem;
+    color: #666;
+    font-weight: normal;
+    margin-top: 0.25rem;
+}
+
+.anime-date {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.anime-description {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: #444;
+    margin: 0.75rem 0;
+    flex-grow: 1;
+}
+
+.streaming-info {
+    margin-top: auto;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.streaming-header {
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text-color);
+    font-size: 1rem;
+}
+
+.streaming-platforms {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.watch-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    text-align: center;
+    min-height: 36px;
+}
+
+.watch-link.available {
+    background-color: var(--primary-color);
+    color: white;
+    text-decoration: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.watch-link.available:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.watch-link.unavailable {
+    background-color: #f5f5f5;
+    color: #999;
+    cursor: default;
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+.no-streams {
+    color: #666;
+    font-style: italic;
+    margin-bottom: 1rem;
+    text-align: center;
+    padding: 1rem;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+.streaming-note {
+    font-size: 0.8rem;
+    color: #666;
+    font-style: italic;
+    text-align: center;
+    margin-top: 0.5rem;
+}
+
+.loading {
+    text-align: center;
+    padding: 2rem;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.error {
+    text-align: center;
+    padding: 2rem;
+    color: #dc3545;
+}
+
+.error button {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.hidden {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    body {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        order: -1;
+    }
+    
+    .main-content {
+        margin-left: 0;
+        padding: 1rem;
+    }
+    
+    .anime-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+
+    .streaming-platforms {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1400px) {
+    .main-content.shifted {
+        margin: 0 auto;
+        margin-left: calc(50% - 600px + var(--sidebar-width));
+    }
+}

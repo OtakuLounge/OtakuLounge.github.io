@@ -39,7 +39,7 @@ class MangaAPI {
         });
 
         // 2. Create the final URL by prepending the proxy to the complete MangaDex URL
-        const finalUrl = `http://localhost:3000/api?url=${encodeURIComponent(mangaDexUrl.toString())}`;
+        const finalUrl = `https://otakulounge-github-io.onrender.com/api?url=${encodeURIComponent(mangaDexUrl.toString())}`;
 
         try {
             // 3. Fetch the final proxied URL
@@ -167,7 +167,7 @@ class MangaAPI {
         const originalImageUrl = `${baseUrl}/${quality}/${chapterHash}/${filename}`;
 
         // 2. Then, take that URL and wrap it in your proxy's URL
-        return `http://localhost:3000/image?url=${encodeURIComponent(originalImageUrl)}`;
+        return `https://otakulounge-github-io.onrender.com/image?url=${encodeURIComponent(originalImageUrl)}`;
     }
 }
 

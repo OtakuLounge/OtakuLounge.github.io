@@ -125,20 +125,23 @@ class MangaAPI {
     }
 
     // Helper to get cover image URL
-     // Helper to get cover image URL
     getCoverImageUrl(manga) {
         // Find the cover art object in the manga's relationships
         const coverArt = manga.relationships?.find(rel => rel.type === 'cover_art');
-
+    
         // Check if all necessary pieces of information exist
         if (manga && manga.id && coverArt && coverArt.attributes?.fileName) {
             const mangaId = manga.id;
             const fileName = coverArt.attributes.fileName;
-
-            // Construct the URL exactly as the documentation specifies
-            return `https://uploads.mangadex.org/covers/${mangaId}/${fileName}`;
+    
+            // 1. First, build the original MangaDex cover URL
+            const originalCoverUrl = `https://uploads.mangadex.org/covers/${mangaId}/${fileName}`;
+    
+            // 2. Then, wrap that URL in your proxy's URL to bypass hotlinking
+            //    (Replace with your actual Render URL)
+            return `https://otakulounge-github-io.onrender.com/image?url=${encodeURIComponent(originalCoverUrl)}`;
         }
-
+    
         // If any information is missing, fall back to the placeholder
         return 'https://via.placeholder.com/300x400/6a5acd/ffffff?text=No+Cover';
     }

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manga Reader - OtakuLounge</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="manga-reader-styles.css">
+</head>
+<body>
+    <!-- Reader Header -->
+    <header class="reader-header">
+        <div class="reader-nav">
+            <button id="backBtn" class="nav-btn" onclick="window.close()">← Back</button>
+            <div class="manga-info-header">
+                <h1 id="mangaTitle">Loading...</h1>
+                <span id="chapterTitle">Chapter Loading...</span>
+            </div>
+            <div class="reader-controls">
+                <button id="prevChapterBtn" class="nav-btn">← Prev Chapter</button>
+                <select id="chapterSelect" class="chapter-select">
+                    <option>Loading chapters...</option>
+                </select>
+                <button id="nextChapterBtn" class="nav-btn">Next Chapter →</button>
+            </div>
+        </div>
+        
+        <!-- Reading Progress Bar -->
+        <div class="progress-container">
+            <div id="progressBar" class="progress-bar"></div>
+        </div>
+    </header>
+
+    <!-- Main Reader Content -->
+    <main class="reader-main">
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Loading chapter pages...</p>
+        </div>
+
+        <div id="error" class="error hidden">
+            <p>Failed to load chapter. Please try again.</p>
+            <button onclick="location.reload()">Retry</button>
+        </div>
+
+        <!-- Manga Pages Container -->
+        <div id="mangaPages" class="manga-pages">
+            <!-- Pages will be loaded here dynamically -->
+        </div>
+
+        <!-- Chapter Navigation Footer -->
+        <div id="chapterNavigation" class="chapter-navigation hidden">
+            <div class="nav-section">
+                <button id="prevChapterFooter" class="chapter-nav-btn">
+                    <span>← Previous Chapter</span>
+                    <small id="prevChapterTitle">Loading...</small>
+                </button>
+                <button id="nextChapterFooter" class="chapter-nav-btn">
+                    <span>Next Chapter →</span>
+                    <small id="nextChapterTitle">Loading...</small>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Reading Settings Panel -->
+    <div id="settingsPanel" class="settings-panel hidden">
+        <div class="settings-content">
+            <h3>Reading Settings</h3>
+            
+            <div class="setting-group">
+                <label for="pageWidth">Page Width:</label>
+                <select id="pageWidth">
+                    <option value="fit-width">Fit Width</option>
+                    <option value="fit-height">Fit Height</option>
+                    <option value="original">Original Size</option>
+                </select>
+            </div>
+
+            <div class="setting-group">
+                <label for="imageQuality">Image Quality:</label>
+                <select id="imageQuality">
+                    <option value="high">High Quality</option>
+                    <option value="data-saver">Data Saver</option>
+                </select>
+            </div>
+
+            <div class="setting-group">
+                <label for="autoScroll">Auto Scroll:</label>
+                <input type="checkbox" id="autoScroll">
+                <span>Enable automatic scrolling</span>
+            </div>
+
+            <div class="setting-group">
+                <label for="scrollSpeed">Scroll Speed:</label>
+                <input type="range" id="scrollSpeed" min="1" max="10" value="5">
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Toggle Button -->
+    <button id="settingsToggle" class="settings-toggle" title="Reading Settings">⚙️</button>
+
+    <!-- Keyboard Shortcuts Help -->
+    <div id="helpPanel" class="help-panel hidden">
+        <div class="help-content">
+            <h3>Keyboard Shortcuts</h3>
+            <div class="shortcuts">
+                <div class="shortcut">
+                    <kbd>Space</kbd> / <kbd>↓</kbd>
+                    <span>Scroll down</span>
+                </div>
+                <div class="shortcut">
+                    <kbd>Shift</kbd> + <kbd>Space</kbd> / <kbd>↑</kbd>
+                    <span>Scroll up</span>
+                </div>
+                <div class="shortcut">
+                    <kbd>←</kbd>
+                    <span>Previous chapter</span>
+                </div>
+                <div class="shortcut">
+                    <kbd>→</kbd>
+                    <span>Next chapter</span>
+                </div>
+                <div class="shortcut">
+                    <kbd>F</kbd>
+                    <span>Toggle fullscreen</span>
+                </div>
+                <div class="shortcut">
+                    <kbd>H</kbd>
+                    <span>Toggle this help</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Toggle Button -->
+    <button id="helpToggle" class="help-toggle" title="Keyboard Shortcuts">?</button>
+
+    <script src="manga-reader-script.js"></script>
+</body>
+</html>

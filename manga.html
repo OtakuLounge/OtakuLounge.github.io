@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manga Browser - OtakuLounge</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="manga-styles.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Browse</h2>
+            <div class="tab-container">
+                <button id="animeTab" class="tab-btn" onclick="window.location.href='index.html'">Anime</button>
+                <button id="mangaTab" class="tab-btn active">Manga</button>
+            </div>
+        </div>
+        <div class="search-section">
+            <input type="text" id="mangaSearchInput" placeholder="Search manga...">
+            <button id="mangaSearchBtn" class="search-btn">Search</button>
+        </div>
+        <div class="genre-list">
+            <div class="genre-group">
+                <h3>Popular Genres</h3>
+                <button class="manga-genre-btn" data-genre="action">Action</button>
+                <button class="manga-genre-btn" data-genre="comedy">Comedy</button>
+                <button class="manga-genre-btn" data-genre="drama">Drama</button>
+                <button class="manga-genre-btn" data-genre="fantasy">Fantasy</button>
+                <button class="manga-genre-btn" data-genre="romance">Romance</button>
+                <button class="manga-genre-btn" data-genre="slice_of_life">Slice of Life</button>
+                <button class="manga-genre-btn" data-genre="supernatural">Supernatural</button>
+                <button class="manga-genre-btn" data-genre="shounen">Shounen</button>
+            </div>
+            <div class="genre-group">
+                <h3>More Genres</h3>
+                <button class="manga-genre-btn" data-genre="adventure">Adventure</button>
+                <button class="manga-genre-btn" data-genre="mystery">Mystery</button>
+                <button class="manga-genre-btn" data-genre="sci_fi">Sci-Fi</button>
+                <button class="manga-genre-btn" data-genre="sports">Sports</button>
+                <button class="manga-genre-btn" data-genre="psychological">Psychological</button>
+                <button class="manga-genre-btn" data-genre="thriller">Thriller</button>
+                <button class="manga-genre-btn" data-genre="seinen">Seinen</button>
+                <button class="manga-genre-btn" data-genre="shoujo">Shoujo</button>
+            </div>
+            <div class="genre-group">
+                <h3>Status</h3>
+                <button class="manga-status-btn" data-status="ongoing">Ongoing</button>
+                <button class="manga-status-btn" data-status="completed">Completed</button>
+                <button class="manga-status-btn" data-status="hiatus">Hiatus</button>
+                <button class="manga-status-btn" data-status="cancelled">Cancelled</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <header>
+            <h1 id="pageTitle">Manga Browser</h1>
+            <div class="manga-filters">
+                <select id="sortOrder">
+                    <option value="relevance">Most Relevant</option>
+                    <option value="latestUploadedChapter">Latest Updates</option>
+                    <option value="title">Title A-Z</option>
+                    <option value="year">Year</option>
+                    <option value="followedCount">Most Followed</option>
+                </select>
+                <select id="contentRating">
+                    <option value="safe">Safe</option>
+                    <option value="suggestive">Suggestive</option>
+                    <option value="erotica">Erotica</option>
+                    <option value="pornographic">Pornographic</option>
+                </select>
+            </div>
+        </header>
+        
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p>Loading manga data...</p>
+        </div>
+
+        <div id="error" class="error hidden">
+            <p>Failed to load manga data. Please try again later.</p>
+            <button onclick="location.reload()">Retry</button>
+        </div>
+
+        <div id="mangaGrid" class="manga-grid">
+            <div class="welcome-message">
+                <h2>Welcome to Manga Browser!</h2>
+                <p>Discover and read your favorite manga:</p>
+                <ul class="welcome-list">
+                    <li>Browse popular manga by genre</li>
+                    <li>Search for specific manga titles</li>
+                    <li>Read manga with our vertical scroll reader</li>
+                    <li>Track your reading progress</li>
+                </ul>
+                <p class="welcome-note">Select a genre or search to get started!</p>
+            </div>
+        </div>
+
+        <div id="pagination" class="pagination hidden">
+            <button id="prevPage" class="page-btn">Previous</button>
+            <span id="pageInfo">Page 1</span>
+            <button id="nextPage" class="page-btn">Next</button>
+        </div>
+    </div>
+
+    <!-- Manga Details Modal -->
+    <div id="mangaModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="modal-body">
+                <div class="manga-details">
+                    <img id="modalCover" class="modal-cover" src="" alt="">
+                    <div class="manga-info-modal">
+                        <h2 id="modalTitle"></h2>
+                        <p id="modalAuthor"></p>
+                        <p id="modalStatus"></p>
+                        <div id="modalTags" class="tags"></div>
+                        <p id="modalDescription"></p>
+                        <div id="modalChapters" class="chapters-list">
+                            <h3>Chapters</h3>
+                            <div id="chaptersList"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="manga-script.js"></script>
+</body>
+</html>

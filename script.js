@@ -688,7 +688,6 @@ function hideSearchSuggestions() {
 
 function setupSidebar() {
     const genreButtons = document.querySelectorAll('.genre-btn');
-    const homeBtn = document.getElementById('homeBtn');
     const searchBtn = document.getElementById('searchBtn');
     const searchInput = document.getElementById('searchInput');
     const homeTab = document.getElementById('homeTab');
@@ -723,10 +722,6 @@ function setupSidebar() {
 
     homeTab.addEventListener('click', () => switchToTab('home'));
     recentTab.addEventListener('click', () => switchToTab('recent'));
-
-    homeBtn.addEventListener('click', () => {
-        switchToTab('home');
-    });
 
     searchBtn.addEventListener('click', () => {
         const query = searchInput.value.trim();

@@ -568,3 +568,19 @@ html {
 ::-webkit-scrollbar-thumb:hover {
     background: #2980b9;
 }
+
+.external-link-btn {
+    display: inline-block;
+    padding: 12px 24px;
+    background-color: #3e63dd;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.external-link-btn:hover {
+    background-color: #3454c4;
+}

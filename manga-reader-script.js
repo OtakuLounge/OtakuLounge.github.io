@@ -33,7 +33,7 @@ class MangaAPI {
         });
     
         // 2. Try using the simple 'corsproxy.io' again
-        const finalUrl = `http://localhost:3000/api?url=${encodeURIComponent(mangaDexUrl.toString())}`;
+        const finalUrl = `https://otakulounge-github-io.onrender.com/api?url=${encodeURIComponent(mangaDexUrl.toString())}`;
     
         try {
             const response = await fetch(finalUrl);
@@ -115,7 +115,7 @@ class MangaAPI {
         const originalImageUrl = `${baseUrl}/${quality}/${chapterHash}/${filename}`;
 
         // 2. Then, take that URL and wrap it in your proxy's URL
-        return `http://localhost:3000/image?url=${encodeURIComponent(originalImageUrl)}`;
+        return `https://otakulounge-github-io.onrender.com/image?url=${encodeURIComponent(originalImageUrl)}`;
     }
 }
 

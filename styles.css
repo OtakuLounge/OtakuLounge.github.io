@@ -22,10 +22,12 @@ body {
 
 /* Welcome Message */
 .welcome-message {
+    grid-column: 1 / -1;
     text-align: center;
     padding: 3rem 1rem;
     max-width: 600px;
     margin: 0 auto;
+    justify-self: center;
 }
 
 .welcome-message h2 {
@@ -85,6 +87,36 @@ body {
     color: white;
 }
 
+/* Tab Container */
+.tab-container {
+    display: flex;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.tab-btn.active {
+    background: white;
+    color: var(--primary-color);
+    border-color: white;
+    font-weight: 500;
+}
+
 .genre-list {
     padding: 1rem;
 }
@@ -141,6 +173,7 @@ body {
 .search-section {
     padding: 1rem;
     border-bottom: 1px solid var(--border-color);
+    position: relative;
 }
 
 #searchInput {
@@ -172,6 +205,52 @@ body {
 .search-btn:hover {
     opacity: 0.9;
     transform: translateY(-1px);
+}
+
+/* Search Suggestions */
+.search-suggestions {
+    position: absolute;
+    top: calc(100% - 0.5rem);
+    left: 1rem;
+    right: 1rem;
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.suggestion-item {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s ease;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover {
+    background-color: var(--background-color);
+}
+
+.suggestion-title {
+    font-weight: 500;
+    color: var(--text-color);
+    margin-bottom: 0.25rem;
+}
+
+.suggestion-english {
+    font-size: 0.85rem;
+    color: #666;
+    font-style: italic;
+}
+
+.search-suggestions.hidden {
+    display: none;
 }
 
 /* Home Button */
@@ -245,10 +324,35 @@ select:disabled {
     transform: translateY(-5px);
 }
 
+.anime-image-container {
+    position: relative;
+    overflow: hidden;
+}
+
 .anime-card img {
     width: 100%;
     height: 200px;
     object-fit: cover;
+}
+
+.airing-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
 }
 
 .anime-info {
@@ -274,6 +378,13 @@ select:disabled {
 .anime-date {
     color: #666;
     font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.anime-score {
+    color: #f39c12;
+    font-size: 0.9rem;
+    font-weight: 600;
     margin-bottom: 0.5rem;
 }
 

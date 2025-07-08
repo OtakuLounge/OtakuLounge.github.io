@@ -343,11 +343,20 @@ class MangaReader {
 
             // HANDLE EXTERNAL CHAPTER
             if (chapterData.isExternal) {
-                // Clear the page and show a message with the link
-                document.getElementById('mangaPages').innerHTML = ''; 
-                this.showError(`This chapter is hosted externally. Please read it at: <a href="${chapterData.url}" target="_blank">${chapterData.url}</a>`);
-                this.updateNavigationButtons(); // Update nav buttons
-                return; // Stop the function here
+                document.getElementById('mangaPages').innerHTML = ''; // Clear manga pages
+
+                // Create the HTML for the message and button
+                const buttonHTML = `
+                    This chapter is hosted on an external site.
+                    <br><br>
+                    <a href="${chapterData.url}" target="_blank" class="external-link-btn">
+                        Read on External Site
+                    </a>
+                `;
+
+                this.showError(buttonHTML); // Display the button
+                this.updateNavigationButtons();
+                return; 
             }
             
             // If not external, load pages as normal
@@ -600,7 +609,12 @@ class MangaReader {
     }
 
     showError(message) {
-        document.getElementById('error').querySelector('p').textContent = message;
+        // Find the paragraph element inside the error div
+        const errorParagraph = document.getElementById('error').querySelector('p');
+        
+        // Use .innerHTML to allow rendering of HTML tags like links and buttons
+        errorParagraph.innerHTML = message; 
+        
         document.getElementById('error').classList.remove('hidden');
         document.getElementById('loading').classList.add('hidden');
     }

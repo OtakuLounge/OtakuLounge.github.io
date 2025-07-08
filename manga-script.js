@@ -125,11 +125,21 @@ class MangaAPI {
     }
 
     // Helper to get cover image URL
-    getCoverImageUrl(manga, size = 'medium') {
+     // Helper to get cover image URL
+    getCoverImageUrl(manga) {
+        // Find the cover art object in the manga's relationships
         const coverArt = manga.relationships?.find(rel => rel.type === 'cover_art');
-        if (coverArt && coverArt.attributes?.fileName) {
-            return `https://uploads.mangadx.org/covers/${manga.id}/${coverArt.attributes.fileName}.512.jpg`;
+
+        // Check if all necessary pieces of information exist
+        if (manga && manga.id && coverArt && coverArt.attributes?.fileName) {
+            const mangaId = manga.id;
+            const fileName = coverArt.attributes.fileName;
+
+            // Construct the URL exactly as the documentation specifies
+            return `https://uploads.mangadex.org/covers/${mangaId}/${fileName}`;
         }
+
+        // If any information is missing, fall back to the placeholder
         return 'https://via.placeholder.com/300x400/6a5acd/ffffff?text=No+Cover';
     }
 

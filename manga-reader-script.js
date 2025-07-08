@@ -19,20 +19,24 @@ class MangaAPI {
 
     async makeRequest(endpoint, params = {}) {
         await this.rateLimit();
-        
-        const url = new URL(`${this.baseURL}${endpoint}`);
+    
+        // 1. Build the complete MangaDex URL
+        const mangaDexUrl = new URL(`${this.baseURL}${endpoint}`);
         Object.keys(params).forEach(key => {
             if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
                 if (Array.isArray(params[key])) {
-                    params[key].forEach(value => url.searchParams.append(key, value));
+                    params[key].forEach(value => mangaDexUrl.searchParams.append(key, value));
                 } else {
-                    url.searchParams.append(key, params[key]);
+                    mangaDexUrl.searchParams.append(key, params[key]);
                 }
             }
         });
-
+    
+        // 2. Try using the simple 'corsproxy.io' again
+        const finalUrl = `https://corsproxy.io/?${mangaDexUrl.toString()}`;
+    
         try {
-            const response = await fetch(url.toString());
+            const response = await fetch(finalUrl);
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
@@ -57,6 +61,7 @@ class MangaAPI {
         this.cache.set(cacheKey, result);
         return result;
     }
+    
 
     async getMangaChapters(mangaId, page = 0) {
         const params = {
@@ -77,9 +82,21 @@ class MangaAPI {
         }
 
         const chapterInfo = await this.makeRequest(`/chapter/${chapterId}`);
+
+        // CHECK FOR EXTERNAL CHAPTER
+        if (chapterInfo.data.attributes.pages === 0 && chapterInfo.data.attributes.externalUrl) {
+            return {
+                isExternal: true,
+                url: chapterInfo.data.attributes.externalUrl,
+                chapter: chapterInfo.data // Pass chapter data along for the title
+            };
+        }
+
+        // If not external, proceed as normal
         const serverInfo = await this.makeRequest(`/at-home/server/${chapterId}`);
         
         const result = {
+            isExternal: false,
             chapter: chapterInfo.data,
             baseUrl: serverInfo.baseUrl,
             chapter_hash: serverInfo.chapter.hash,
@@ -91,6 +108,7 @@ class MangaAPI {
         return result;
     }
 
+    // ADD THIS FUNCTION BACK
     getPageUrl(baseUrl, chapterHash, filename, dataSaver = false) {
         const quality = dataSaver ? 'data-saver' : 'data';
         return `${baseUrl}/${quality}/${chapterHash}/${filename}`;
@@ -311,18 +329,28 @@ class MangaReader {
             const chapterData = await this.api.getChapterPages(chapterId);
             this.currentChapter = chapterData;
             
+            // Set chapter title regardless of type
             const chapterInfo = chapterData.chapter;
             const chapterNum = chapterInfo.attributes.chapter || 'N/A';
             const chapterTitle = chapterInfo.attributes.title || '';
             const displayTitle = chapterTitle ? 
                 `Chapter ${chapterNum}: ${chapterTitle}` : 
                 `Chapter ${chapterNum}`;
-            
             document.getElementById('chapterTitle').textContent = displayTitle;
             document.getElementById('chapterSelect').value = chapterId;
             
             this.currentChapterIndex = this.allChapters.findIndex(ch => ch.id === chapterId);
+
+            // HANDLE EXTERNAL CHAPTER
+            if (chapterData.isExternal) {
+                // Clear the page and show a message with the link
+                document.getElementById('mangaPages').innerHTML = ''; 
+                this.showError(`This chapter is hosted externally. Please read it at: <a href="${chapterData.url}" target="_blank">${chapterData.url}</a>`);
+                this.updateNavigationButtons(); // Update nav buttons
+                return; // Stop the function here
+            }
             
+            // If not external, load pages as normal
             await this.loadPages();
             this.updateNavigationButtons();
             this.hideLoading();

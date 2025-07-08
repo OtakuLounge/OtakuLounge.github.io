@@ -375,61 +375,40 @@ class MangaReader {
     async loadPages() {
         const pagesContainer = document.getElementById('mangaPages');
         const { baseUrl, chapter_hash, data, dataSaver } = this.currentChapter;
-        
+    
         const imageFiles = this.settings.imageQuality === 'data-saver' ? dataSaver : data;
-        
-        pagesContainer.innerHTML = imageFiles.map((filename, index) => `
-            <div class="page-placeholder" id="placeholder-${index}"></div>
-            <img class="manga-page" 
-                 id="page-${index}" 
-                 data-src="${this.api.getPageUrl(baseUrl, chapter_hash, filename, this.settings.imageQuality === 'data-saver')}"
-                 alt="Page ${index + 1}"
-                 style="display: none;">
-        `).join('');
-
-        this.loadImagesProgressively(imageFiles.length);
-        
+    
+        // Add an onerror attribute to the img tag for automatic retries
+        pagesContainer.innerHTML = imageFiles.map((filename, index) => {
+            const imageUrl = this.api.getPageUrl(baseUrl, chapter_hash, filename, this.settings.imageQuality === 'data-saver');
+            return `
+                <img 
+                    class="manga-page" 
+                    id="page-${index}" 
+                    data-src="${imageUrl}" 
+                    alt="Page ${index + 1}"
+                    onerror="this.onerror=null; this.src=this.dataset.src;"
+                >`;
+        }).join('');
+    
+        // Use an Intersection Observer to lazy-load images
+        const images = document.querySelectorAll('.manga-page[data-src]');
+        const observer = new IntersectionObserver((entries, obs) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    img.src = img.dataset.src; // Start loading the image
+                    obs.unobserve(img); // Stop observing this image
+                }
+            });
+        }, { rootMargin: '200px' });
+    
+        images.forEach(img => {
+            observer.observe(img);
+        });
+    
         document.getElementById('chapterNavigation').classList.remove('hidden');
         this.updateChapterNavigation();
-    }
-
-    async loadImagesProgressively(totalPages) {
-        const loadPromises = [];
-        
-        for (let i = 0; i < totalPages; i++) {
-            const promise = this.loadSinglePage(i);
-            loadPromises.push(promise);
-            
-            if (i < 3) {
-                await promise;
-            }
-        }
-        
-        await Promise.all(loadPromises);
-    }
-
-    loadSinglePage(index) {
-        return new Promise((resolve) => {
-            const img = document.getElementById(`page-${index}`);
-            const placeholder = document.getElementById(`placeholder-${index}`);
-            
-            img.onload = () => {
-                placeholder.style.display = 'none';
-                img.style.display = 'block';
-                resolve();
-            };
-            
-            img.onerror = () => {
-                placeholder.innerHTML = `
-                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #e74c3c;">
-                        Failed to load page ${index + 1}
-                    </div>
-                `;
-                resolve();
-            };
-            
-            img.src = img.dataset.src;
-        });
     }
 
     async reloadPages() {

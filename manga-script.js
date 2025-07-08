@@ -39,7 +39,7 @@ class MangaAPI {
         });
 
         // 2. Create the final URL by prepending the proxy to the complete MangaDex URL
-        const finalUrl = `https://corsproxy.io/?${mangaDexUrl.toString()}`;
+        const finalUrl = `http://localhost:3000/api?url=${encodeURIComponent(mangaDexUrl.toString())}`;
 
         try {
             // 3. Fetch the final proxied URL
@@ -162,8 +162,12 @@ class MangaAPI {
 
     // Helper to get page URL
     getPageUrl(baseUrl, chapterHash, filename, dataSaver = false) {
+        // 1. First, build the original MangaDex image URL
         const quality = dataSaver ? 'data-saver' : 'data';
-        return `${baseUrl}/${quality}/${chapterHash}/${filename}`;
+        const originalImageUrl = `${baseUrl}/${quality}/${chapterHash}/${filename}`;
+
+        // 2. Then, take that URL and wrap it in your proxy's URL
+        return `http://localhost:3000/image?url=${encodeURIComponent(originalImageUrl)}`;
     }
 }
 

@@ -91,6 +91,91 @@ function showWelcomeMessage() {
     `;
 }
 
+// Enhanced search with relevance scoring
+function calculateRelevanceScore(anime, query) {
+    const queryLower = query.toLowerCase();
+    const title = anime.title.toLowerCase();
+    const englishTitle = anime.title_english ? anime.title_english.toLowerCase() : '';
+    const synonyms = anime.title_synonyms ? anime.title_synonyms.join(' ').toLowerCase() : '';
+    
+    let score = 0;
+    
+    // Exact title match (highest priority)
+    if (title === queryLower || englishTitle === queryLower) {
+        score += 100;
+    }
+    // Title starts with query
+    else if (title.startsWith(queryLower) || englishTitle.startsWith(queryLower)) {
+        score += 80;
+    }
+    // Title contains query
+    else if (title.includes(queryLower) || englishTitle.includes(queryLower)) {
+        score += 60;
+    }
+    // Synonym matches
+    else if (synonyms.includes(queryLower)) {
+        score += 40;
+    }
+    // Word boundary matches (whole words)
+    else if (title.split(' ').some(word => word.startsWith(queryLower)) || 
+             englishTitle.split(' ').some(word => word.startsWith(queryLower))) {
+        score += 30;
+    }
+    
+    // Boost score based on popularity (MAL score and members)
+    if (anime.score) {
+        score += Math.min(anime.score * 2, 20);
+    }
+    if (anime.members) {
+        score += Math.min(Math.log10(anime.members) * 2, 10);
+    }
+    
+    // Penalize very long titles that might be less relevant
+    if (title.length > 50) {
+        score -= 5;
+    }
+    
+    return score;
+}
+
+function fuzzyMatch(str1, str2, threshold = 0.6) {
+    const longer = str1.length > str2.length ? str1 : str2;
+    const shorter = str1.length > str2.length ? str2 : str1;
+    
+    if (longer.length === 0) return 1.0;
+    
+    const editDistance = levenshteinDistance(longer, shorter);
+    return (longer.length - editDistance) / longer.length >= threshold;
+}
+
+function levenshteinDistance(str1, str2) {
+    const matrix = [];
+    
+    for (let i = 0; i <= str2.length; i++) {
+        matrix[i] = [i];
+    }
+    
+    for (let j = 0; j <= str1.length; j++) {
+        matrix[0][j] = j;
+    }
+    
+    for (let i = 1; i <= str2.length; i++) {
+        for (let j = 1; j <= str1.length; j++) {
+            if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+                matrix[i][j] = matrix[i - 1][j - 1];
+            } else {
+                matrix[i][j] = Math.min(
+                    matrix[i - 1][j - 1] + 1,
+                    matrix[i][j - 1] + 1,
+                    matrix[i - 1][j] + 1
+                );
+            }
+        }
+    }
+    
+    return matrix[str2.length][str1.length];
+}
+
 async function searchAnime(query) {
     const loadingElement = document.getElementById('loading');
     const errorElement = document.getElementById('error');
@@ -109,18 +194,60 @@ async function searchAnime(query) {
             }
         }
 
-        const endpoint = `${JIKAN_API_URL}/anime?q=${encodeURIComponent(query)}&sfw=true&order_by=popularity&sort=asc&limit=24`;
+        // Fetch more results for better filtering (increased limit)
+        const endpoint = `${JIKAN_API_URL}/anime?q=${encodeURIComponent(query)}&sfw=true&limit=25`;
         const data = await jikanQueue.add(endpoint);
 
         if (!data.data || data.data.length === 0) {
-            throw new Error('No anime found matching your search');
+            // Try fuzzy search if no exact results
+            const fuzzyEndpoint = `${JIKAN_API_URL}/anime?q=${encodeURIComponent(query.substring(0, Math.max(3, query.length - 2)))}&sfw=true&limit=25`;
+            const fuzzyData = await jikanQueue.add(fuzzyEndpoint);
+            
+            if (!fuzzyData.data || fuzzyData.data.length === 0) {
+                throw new Error('No anime found matching your search');
+            }
+            
+            // Filter fuzzy results
+            const fuzzyFiltered = fuzzyData.data.filter(anime => 
+                fuzzyMatch(anime.title.toLowerCase(), query.toLowerCase()) ||
+                (anime.title_english && fuzzyMatch(anime.title_english.toLowerCase(), query.toLowerCase()))
+            );
+            
+            if (fuzzyFiltered.length === 0) {
+                throw new Error('No anime found matching your search');
+            }
+            
+            data.data = fuzzyFiltered;
         }
+
+        // Calculate relevance scores and sort
+        const scoredResults = data.data.map(anime => ({
+            ...anime,
+            relevanceScore: calculateRelevanceScore(anime, query)
+        }));
+
+        // Sort by relevance score (highest first)
+        scoredResults.sort((a, b) => b.relevanceScore - a.relevanceScore);
+
+        // Remove duplicates based on MAL ID
+        const uniqueResults = [];
+        const seenIds = new Set();
+        
+        for (const anime of scoredResults) {
+            if (!seenIds.has(anime.mal_id)) {
+                seenIds.add(anime.mal_id);
+                uniqueResults.push(anime);
+            }
+        }
+
+        // Limit to top 24 most relevant results
+        const topResults = uniqueResults.slice(0, 24);
 
         const batchSize = 5;
         const enhancedData = [];
         
-        for (let i = 0; i < data.data.length; i += batchSize) {
-            const batch = data.data.slice(i, i + batchSize);
+        for (let i = 0; i < topResults.length; i += batchSize) {
+            const batch = topResults.slice(i, i + batchSize);
             const batchResults = await Promise.all(
                 batch.map(async (anime) => {
                     const streamingInfo = await getKitsuStreamingInfo(anime.title);
@@ -203,6 +330,76 @@ async function fetchAnimeByGenre(genreId) {
     }
 }
 
+async function fetchRecentAnime() {
+    const loadingElement = document.getElementById('loading');
+    const errorElement = document.getElementById('error');
+
+    try {
+        loadingElement.classList.remove('hidden');
+        errorElement.classList.add('hidden');
+        
+        const cacheKey = 'recent-anime';
+        if (apiCache.jikan.has(cacheKey)) {
+            const cachedData = apiCache.jikan.get(cacheKey);
+            if (Date.now() - cachedData.timestamp < 6 * 60 * 60 * 1000) {
+                displayAnimeData(cachedData.data);
+                loadingElement.classList.add('hidden');
+                return;
+            }
+        }
+
+        // Get current season anime (currently airing)
+        const endpoint = `${JIKAN_API_URL}/seasons/now?sfw=true&limit=24`;
+        const data = await jikanQueue.add(endpoint);
+        
+        if (!data.data || data.data.length === 0) {
+            throw new Error('No recent anime found');
+        }
+
+        // Sort by score and popularity
+        const sortedData = data.data
+            .filter(anime => anime.score && anime.members) // Filter out anime without ratings
+            .sort((a, b) => {
+                // Primary sort by score, secondary by member count
+                if (b.score !== a.score) {
+                    return b.score - a.score;
+                }
+                return b.members - a.members;
+            })
+            .slice(0, 24); // Limit to top 24
+        
+        const batchSize = 5;
+        const enhancedData = [];
+        
+        for (let i = 0; i < sortedData.length; i += batchSize) {
+            const batch = sortedData.slice(i, i + batchSize);
+            const batchResults = await Promise.all(
+                batch.map(async (anime) => {
+                    const streamingInfo = await getKitsuStreamingInfo(anime.title);
+                    return {
+                        ...anime,
+                        streaming: [...(anime.streaming || []), ...(streamingInfo || [])],
+                        isCurrentlyAiring: true // Add flag for styling
+                    };
+                })
+            );
+            enhancedData.push(...batchResults);
+            displayAnimeData(enhancedData);
+        }
+
+        apiCache.jikan.set(cacheKey, {
+            data: enhancedData,
+            timestamp: Date.now()
+        });
+    } catch (error) {
+        console.error('Error fetching recent anime:', error);
+        errorElement.classList.remove('hidden');
+        errorElement.querySelector('p').textContent = error.message;
+    } finally {
+        loadingElement.classList.add('hidden');
+    }
+}
+
 function displayAnimeData(animeList) {
     const animeGrid = document.getElementById('animeGrid');
     animeGrid.innerHTML = '';
@@ -228,9 +425,12 @@ function displayAnimeData(animeList) {
         const streamingLinks = getStreamingLinks(anime.streaming);
         
         card.innerHTML = `
-            <img src="${anime.images.jpg.large_image_url || anime.images.jpg.image_url}" 
-                 alt="${anime.title}" 
-                 onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+            <div class="anime-image-container">
+                <img src="${anime.images.jpg.large_image_url || anime.images.jpg.image_url}" 
+                     alt="${anime.title}" 
+                     onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                ${anime.isCurrentlyAiring ? '<div class="airing-badge">Currently Airing</div>' : ''}
+            </div>
             <div class="anime-info">
                 <div class="anime-title">
                     ${anime.title}
@@ -242,6 +442,7 @@ function displayAnimeData(animeList) {
                     ${formatDate(anime.aired?.from)} ${anime.aired?.to ? `- ${formatDate(anime.aired.to)}` : ''}
                 </div>
                 <div>Episodes: ${anime.episodes || 'TBA'}</div>
+                ${anime.score ? `<div class="anime-score">★ ${anime.score}/10</div>` : ''}
                 <div class="anime-description">
                     ${anime.synopsis ? truncateDescription(anime.synopsis, 150) : 'No description available.'}
                 </div>
@@ -385,39 +586,193 @@ function formatDate(dateString) {
     });
 }
 
+// Search suggestions functionality
+let searchSuggestions = [];
+let suggestionTimeout;
+
+async function loadPopularAnime() {
+    try {
+        const endpoint = `${JIKAN_API_URL}/top/anime?limit=25`;
+        const data = await jikanQueue.add(endpoint);
+        
+        if (data.data) {
+            searchSuggestions = data.data.map(anime => ({
+                title: anime.title,
+                englishTitle: anime.title_english,
+                synonyms: anime.title_synonyms || []
+            }));
+        }
+    } catch (error) {
+        console.error('Error loading popular anime for suggestions:', error);
+    }
+}
+
+function createSuggestionsDropdown() {
+    const searchSection = document.querySelector('.search-section');
+    const dropdown = document.createElement('div');
+    dropdown.id = 'searchSuggestions';
+    dropdown.className = 'search-suggestions hidden';
+    searchSection.appendChild(dropdown);
+    return dropdown;
+}
+
+function showSearchSuggestions(query, inputElement) {
+    if (!query || query.length < 2) {
+        hideSearchSuggestions();
+        return;
+    }
+
+    const dropdown = document.getElementById('searchSuggestions') || createSuggestionsDropdown();
+    const queryLower = query.toLowerCase();
+    
+    // Find matching suggestions
+    const matches = searchSuggestions
+        .filter(anime => {
+            return anime.title.toLowerCase().includes(queryLower) ||
+                   (anime.englishTitle && anime.englishTitle.toLowerCase().includes(queryLower)) ||
+                   anime.synonyms.some(synonym => synonym.toLowerCase().includes(queryLower));
+        })
+        .slice(0, 8) // Limit to 8 suggestions
+        .map(anime => {
+            // Prioritize exact matches and starts-with matches
+            const title = anime.title.toLowerCase();
+            const englishTitle = anime.englishTitle ? anime.englishTitle.toLowerCase() : '';
+            
+            let displayTitle = anime.title;
+            let priority = 0;
+            
+            if (title === queryLower || englishTitle === queryLower) {
+                priority = 3;
+            } else if (title.startsWith(queryLower) || englishTitle.startsWith(queryLower)) {
+                priority = 2;
+            } else if (title.includes(queryLower) || englishTitle.includes(queryLower)) {
+                priority = 1;
+            }
+            
+            return { ...anime, displayTitle, priority };
+        })
+        .sort((a, b) => b.priority - a.priority);
+
+    if (matches.length === 0) {
+        hideSearchSuggestions();
+        return;
+    }
+
+    dropdown.innerHTML = matches.map(anime => `
+        <div class="suggestion-item" data-title="${anime.title}">
+            <div class="suggestion-title">${anime.title}</div>
+            ${anime.englishTitle && anime.englishTitle !== anime.title ? 
+                `<div class="suggestion-english">${anime.englishTitle}</div>` : ''}
+        </div>
+    `).join('');
+
+    // Add click handlers
+    dropdown.querySelectorAll('.suggestion-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const title = item.dataset.title;
+            inputElement.value = title;
+            hideSearchSuggestions();
+            searchAnime(title);
+        });
+    });
+
+    dropdown.classList.remove('hidden');
+}
+
+function hideSearchSuggestions() {
+    const dropdown = document.getElementById('searchSuggestions');
+    if (dropdown) {
+        dropdown.classList.add('hidden');
+    }
+}
+
 function setupSidebar() {
     const genreButtons = document.querySelectorAll('.genre-btn');
     const homeBtn = document.getElementById('homeBtn');
     const searchBtn = document.getElementById('searchBtn');
     const searchInput = document.getElementById('searchInput');
+    const homeTab = document.getElementById('homeTab');
+    const recentTab = document.getElementById('recentTab');
     
     let activeGenre = null;
+    let currentTab = 'home';
 
-    homeBtn.addEventListener('click', () => {
+    // Load popular anime for suggestions
+    loadPopularAnime();
+
+    // Tab functionality
+    function switchToTab(tabName) {
+        // Update tab visual states
+        homeTab.classList.toggle('active', tabName === 'home');
+        recentTab.classList.toggle('active', tabName === 'recent');
+        
+        // Clear active genre when switching tabs
         genreButtons.forEach(btn => btn.classList.remove('active'));
         activeGenre = null;
-        showWelcomeMessage();
+        
+        currentTab = tabName;
+        
+        if (tabName === 'home') {
+            showWelcomeMessage();
+        } else if (tabName === 'recent') {
+            fetchRecentAnime();
+        }
+        
+        hideSearchSuggestions();
+    }
+
+    homeTab.addEventListener('click', () => switchToTab('home'));
+    recentTab.addEventListener('click', () => switchToTab('recent'));
+
+    homeBtn.addEventListener('click', () => {
+        switchToTab('home');
     });
 
     searchBtn.addEventListener('click', () => {
         const query = searchInput.value.trim();
         if (query) {
+            hideSearchSuggestions();
             searchAnime(query);
         }
+    });
+
+    searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        
+        clearTimeout(suggestionTimeout);
+        suggestionTimeout = setTimeout(() => {
+            showSearchSuggestions(query, searchInput);
+        }, 300); // Debounce suggestions
     });
 
     searchInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             const query = searchInput.value.trim();
             if (query) {
+                hideSearchSuggestions();
                 searchAnime(query);
             }
+        } else if (e.key === 'Escape') {
+            hideSearchSuggestions();
+        }
+    });
+
+    searchInput.addEventListener('blur', () => {
+        // Delay hiding to allow click on suggestions
+        setTimeout(() => hideSearchSuggestions(), 200);
+    });
+
+    searchInput.addEventListener('focus', () => {
+        const query = searchInput.value.trim();
+        if (query.length >= 2) {
+            showSearchSuggestions(query, searchInput);
         }
     });
 
     genreButtons.forEach(button => {
         button.addEventListener('click', async () => {
             const genreId = button.dataset.genre;
+            hideSearchSuggestions();
             
             if (activeGenre === genreId) {
                 activeGenre = null;
@@ -430,6 +785,13 @@ function setupSidebar() {
                 await fetchAnimeByGenre(genreId);
             }
         });
+    });
+
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-section')) {
+            hideSearchSuggestions();
+        }
     });
 }
 
